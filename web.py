@@ -6,6 +6,7 @@ import PyQt5.QtCore
 import PyQt5.QtWidgets
 import PyQt5.QtWebEngineWidgets
 
+
 class Web(object):
     '''
     Web scraper class
@@ -23,7 +24,9 @@ class Web(object):
         self.view = PyQt5.QtWebEngineWidgets.QWebEngineView()
         self.page = self.view.page()
         self.page.runJavaScript('let elms')
+
         self.timer = PyQt5.QtCore.QTimer()
+        self.timer.timeout.connect(self.query)
 
         self.selector = None
         self.callback = None
@@ -31,12 +34,14 @@ class Web(object):
         if debug:
             self.view.show()
 
+
     def load(self, url):
         '''
         Load page
         '''
 
         self.view.load(PyQt5.QtCore.QUrl(url))
+
 
     def runcallback(self, variant):
         '''
@@ -47,6 +52,7 @@ class Web(object):
             self.timer.stop()
             self.callback(variant)
 
+
     def query(self):
         '''
         Query
@@ -55,12 +61,15 @@ class Web(object):
         if self.timer.interval != self.timeout:
             self.timer.setInterval(self.timeout)
 
-        self.page.runJavaScript("""
+        javascript = """
         elms = document.querySelectorAll('%s');
         Object
             .keys(elms)
-            .map(key => elms[key].innerText);
-        """ % self.selector, self.runcallback)
+            .map(key => elms[key].textContent);
+        """ % self.selector
+
+        self.page.runJavaScript(javascript, self.runcallback)
+
 
     def get(self, selector, callback):
         '''
@@ -70,5 +79,4 @@ class Web(object):
         self.selector = selector
         self.callback = callback
 
-        self.timer.timeout.connect(self.query)
         self.timer.start(self.firsttimeout)
