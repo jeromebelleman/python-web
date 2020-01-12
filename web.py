@@ -12,14 +12,15 @@ class Web(object):
     Web scraper class
     '''
 
-    def __init__(self, firsttimeout=.5, timeout=5, retries=5, debug=False):
+    def __init__(self, firsttimeout=.5, timeout=5, maxretries=5, debug=False):
         '''
         Initialise
         '''
 
         self.firsttimeout = firsttimeout * 1000
         self.timeout = timeout * 1000
-        self.retries = 5
+        self.maxretries = 5
+        self.retries = self.maxretries
 
         self.view = PyQt5.QtWebEngineWidgets.QWebEngineView()
         self.page = self.view.page()
@@ -48,9 +49,12 @@ class Web(object):
         Run JavaScript callback
         '''
 
-        if variant:
+        if variant or not self.retries:
+            self.retries = self.maxretries
             self.timer.stop()
             self.callback(variant)
+
+        self.retries -= 1
 
 
     def query(self):
